@@ -108,6 +108,25 @@ export default function ProgramInfo({ onClose }: ProgramInfoProps) {
       description:
         "경제/메인뉴스 카테고리 필터링 오류를 완전히 해결하고 모든 카테고리에서 균등하게 10개씩의 토픽을 제공하도록 개선",
     },
+    {
+      version: "v1.6",
+      date: "6차 개선",
+      title: "MVP 정의 및 서비스 가치 명확화",
+      credit: "~50 credits",
+      userPrompt: "사용자 질의: 우리 스몰톡의 mvp는 무엇인가요? → 응답: MVP 내용도 프로그램 설명에 추가해 주세요",
+      features: [
+        "MVP 핵심 가치 정의: 직장인들의 점심시간 업무 스트레스 해소",
+        "실시간 뉴스 기반 토픽 제공 (네이버 API 연동)",
+        "5개 카테고리 분류 (연예, 스포츠, 교육, 경제, 메인뉴스)",
+        "민감한 주제 자동 제외 (정치, 종교)",
+        "하루치 데이터 제공 (오늘/어제)",
+        "매시간 자동 갱신 기능",
+        "GitHub 공개 저장소 및 Vercel 배포 완료",
+        "바이브코딩 프롬프트 기반 개발 이력 기록",
+      ],
+      description:
+        "MVP의 핵심 목표와 달성된 기능을 명확히 정의하고 추후 확장 기능(랭킹, 팀 설정 등)과의 구분을 통해 서비스의 확실한 방향성 수립",
+    },
   ]
 
   const totalCredits = programHistory.reduce((sum, item) => {
