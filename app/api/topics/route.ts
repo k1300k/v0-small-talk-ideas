@@ -265,12 +265,33 @@ export async function GET() {
       )
     })
 
+    const categoryLimits: Record<string, number> = {}
+    const maxPerCategory = 10
+    const limitedTopics = sortedTopics.filter((topic) => {
+      if (!categoryLimits[topic.category]) {
+        categoryLimits[topic.category] = 0
+      }
+      if (categoryLimits[topic.category] < maxPerCategory) {
+        categoryLimits[topic.category]++
+        return true
+      }
+      return false
+    })
+
     console.log(
-      "[v0] 최종 토픽 반환:",
-      sortedTopics.slice(0, 50).map((t) => ({ title: t.title, category: t.category })),
+      "[v0] 최종 토픽 반환 - 연예:",
+      categoryLimits["연예"],
+      "스포츠:",
+      categoryLimits["스포츠"],
+      "교육:",
+      categoryLimits["교육"],
+      "경제:",
+      categoryLimits["경제"],
+      "메인뉴스:",
+      categoryLimits["메인뉴스"],
     )
 
-    return NextResponse.json(sortedTopics.slice(0, 50))
+    return NextResponse.json(limitedTopics)
   } catch (error) {
     console.error("[v0] API Error:", error)
     return NextResponse.json(
@@ -300,8 +321,7 @@ export async function GET() {
             dateLabel,
             tags: extractTags(topic.title, topic.category),
           }
-        })
-        .slice(0, 50),
+        }),
     )
   }
 }
