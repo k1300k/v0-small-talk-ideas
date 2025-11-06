@@ -17,17 +17,20 @@ interface NewsArticle {
 interface NewsCardProps {
   article: NewsArticle
   onTagClick?: (tag: string) => void
+  showImages?: boolean
 }
 
-export default function NewsCard({ article, onTagClick }: NewsCardProps) {
+export default function NewsCard({ article, onTagClick, showImages = true }: NewsCardProps) {
   const articleUrl = article.url || `https://www.google.com/search?q=${encodeURIComponent(article.title)}`
 
   return (
     <Link href={articleUrl} target="_blank" rel="noopener noreferrer">
       <Card className="hover:shadow-lg transition-shadow duration-300 overflow-hidden flex flex-col h-full cursor-pointer hover:scale-105 transition-transform">
-        <div className="relative h-48 w-full bg-muted overflow-hidden">
-          <img src={article.image || "/placeholder.svg"} alt={article.title} className="w-full h-full object-cover" />
-        </div>
+        {showImages && (
+          <div className="relative h-48 w-full bg-muted overflow-hidden">
+            <img src={article.image || "/placeholder.svg"} alt={article.title} className="w-full h-full object-cover" />
+          </div>
+        )}
         <CardHeader className="flex-1">
           <div className="flex items-start justify-between gap-2 mb-2">
             <button

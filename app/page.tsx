@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import NewsCard from "@/components/news-card"
 import StockCard from "@/components/stock-card"
-import { TrendingUp, Globe, Zap, Briefcase, BarChart3, X } from "lucide-react"
+import { TrendingUp, Globe, Zap, Briefcase, BarChart3, X, ImageIcon, ImageOff } from "lucide-react"
 
 interface NewsArticle {
   id: string
@@ -30,6 +30,7 @@ interface StockData {
 export default function Home() {
   const [activeTab, setActiveTab] = useState("news")
   const [searchTag, setSearchTag] = useState<string | null>(null)
+  const [showImages, setShowImages] = useState(true)
 
   const newsData: NewsArticle[] = [
     {
@@ -123,11 +124,32 @@ export default function Home() {
       {/* Header */}
       <header className="border-b border-border bg-card sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-            <TrendingUp className="text-blue-600" size={32} />
-            Small Talk Ideas
-          </h1>
-          <p className="text-muted-foreground mt-1">뉴스와 주식 정보를 한 곳에서</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+                <TrendingUp className="text-blue-600" size={32} />
+                Small Talk Ideas
+              </h1>
+              <p className="text-muted-foreground mt-1">뉴스와 주식 정보를 한 곳에서</p>
+            </div>
+            <button
+              onClick={() => setShowImages(!showImages)}
+              className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors"
+              title={showImages ? "이미지 숨기기" : "이미지 표시"}
+            >
+              {showImages ? (
+                <>
+                  <ImageIcon size={20} />
+                  <span className="text-sm font-medium">이미지 ON</span>
+                </>
+              ) : (
+                <>
+                  <ImageOff size={20} />
+                  <span className="text-sm font-medium">이미지 OFF</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -181,7 +203,7 @@ export default function Home() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredNewsData.map((article) => (
-                  <NewsCard key={article.id} article={article} onTagClick={handleTagClick} />
+                  <NewsCard key={article.id} article={article} onTagClick={handleTagClick} showImages={showImages} />
                 ))}
               </div>
             </div>
@@ -193,7 +215,7 @@ export default function Home() {
               <h2 className="text-2xl font-bold text-foreground mb-4">기술 뉴스</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {techNews.map((article) => (
-                  <NewsCard key={article.id} article={article} onTagClick={handleTagClick} />
+                  <NewsCard key={article.id} article={article} onTagClick={handleTagClick} showImages={showImages} />
                 ))}
               </div>
             </div>
@@ -205,7 +227,7 @@ export default function Home() {
               <h2 className="text-2xl font-bold text-foreground mb-4">비즈니스 뉴스</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {businessNews.map((article) => (
-                  <NewsCard key={article.id} article={article} onTagClick={handleTagClick} />
+                  <NewsCard key={article.id} article={article} onTagClick={handleTagClick} showImages={showImages} />
                 ))}
               </div>
             </div>
@@ -217,7 +239,7 @@ export default function Home() {
               <h2 className="text-2xl font-bold text-foreground mb-4">스포츠 뉴스</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {sportsNews.map((article) => (
-                  <NewsCard key={article.id} article={article} onTagClick={handleTagClick} />
+                  <NewsCard key={article.id} article={article} onTagClick={handleTagClick} showImages={showImages} />
                 ))}
               </div>
             </div>
