@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -12,7 +14,12 @@ interface NewsArticle {
   url?: string
 }
 
-export default function NewsCard({ article }: { article: NewsArticle }) {
+interface NewsCardProps {
+  article: NewsArticle
+  onTagClick?: (tag: string) => void
+}
+
+export default function NewsCard({ article, onTagClick }: NewsCardProps) {
   const articleUrl = article.url || `https://www.google.com/search?q=${encodeURIComponent(article.title)}`
 
   return (
@@ -23,7 +30,15 @@ export default function NewsCard({ article }: { article: NewsArticle }) {
         </div>
         <CardHeader className="flex-1">
           <div className="flex items-start justify-between gap-2 mb-2">
-            <span className="text-xs font-semibold bg-blue-100 text-blue-800 px-2 py-1 rounded">{article.source}</span>
+            <button
+              onClick={(e) => {
+                e.preventDefault()
+                onTagClick?.(article.source)
+              }}
+              className="text-xs font-semibold bg-blue-100 text-blue-800 px-2 py-1 rounded hover:bg-blue-200 transition-colors cursor-pointer"
+            >
+              {article.source}
+            </button>
             <span className="text-xs text-muted-foreground">{article.date}</span>
           </div>
           <CardTitle className="line-clamp-2 text-lg">{article.title}</CardTitle>

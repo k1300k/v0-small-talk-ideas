@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import NewsCard from "@/components/news-card"
 import StockCard from "@/components/stock-card"
-import { TrendingUp, Globe, Zap, Briefcase, BarChart3 } from "lucide-react"
+import { TrendingUp, Globe, Zap, Briefcase, BarChart3, X } from "lucide-react"
 
 interface NewsArticle {
   id: string
@@ -29,8 +29,8 @@ interface StockData {
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("news")
+  const [searchTag, setSearchTag] = useState<string | null>(null)
 
-  // Mock 뉴스 데이터
   const newsData: NewsArticle[] = [
     {
       id: "1",
@@ -64,7 +64,6 @@ export default function Home() {
     },
   ]
 
-  // Mock 주식 데이터
   const stockData: StockData[] = [
     {
       id: "1",
@@ -104,9 +103,20 @@ export default function Home() {
     },
   ]
 
-  const techNews = newsData.filter((article) => article.category === "technology")
-  const businessNews = newsData.filter((article) => article.category === "business")
-  const sportsNews = newsData.filter((article) => article.category === "sports")
+  const filteredNewsData = searchTag ? newsData.filter((article) => article.source === searchTag) : newsData
+
+  const techNews = filteredNewsData.filter((article) => article.category === "technology")
+  const businessNews = filteredNewsData.filter((article) => article.category === "business")
+  const sportsNews = filteredNewsData.filter((article) => article.category === "sports")
+
+  const handleTagClick = (tag: string) => {
+    setSearchTag(tag)
+    setActiveTab("news")
+  }
+
+  const handleClearSearch = () => {
+    setSearchTag(null)
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -123,6 +133,22 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-8">
+        {searchTag && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">검색:</span>
+              <span className="font-semibold text-blue-900">{searchTag}</span>
+            </div>
+            <button
+              onClick={handleClearSearch}
+              className="flex items-center gap-1 px-3 py-1 bg-blue-200 hover:bg-blue-300 text-blue-900 rounded transition-colors"
+            >
+              <X size={16} />
+              초기화
+            </button>
+          </div>
+        )}
+
         <Tabs defaultValue="news" value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-5 bg-muted p-1 mb-8">
             <TabsTrigger value="news" className="flex items-center gap-2">
@@ -150,10 +176,12 @@ export default function Home() {
           {/* All News Tab */}
           <TabsContent value="news" className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-foreground mb-4">모든 뉴스</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-4">
+                {searchTag ? `${searchTag} 관련 기사` : "모든 뉴스"}
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {newsData.map((article) => (
-                  <NewsCard key={article.id} article={article} />
+                {filteredNewsData.map((article) => (
+                  <NewsCard key={article.id} article={article} onTagClick={handleTagClick} />
                 ))}
               </div>
             </div>
@@ -165,7 +193,7 @@ export default function Home() {
               <h2 className="text-2xl font-bold text-foreground mb-4">기술 뉴스</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {techNews.map((article) => (
-                  <NewsCard key={article.id} article={article} />
+                  <NewsCard key={article.id} article={article} onTagClick={handleTagClick} />
                 ))}
               </div>
             </div>
@@ -177,7 +205,7 @@ export default function Home() {
               <h2 className="text-2xl font-bold text-foreground mb-4">비즈니스 뉴스</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {businessNews.map((article) => (
-                  <NewsCard key={article.id} article={article} />
+                  <NewsCard key={article.id} article={article} onTagClick={handleTagClick} />
                 ))}
               </div>
             </div>
@@ -189,13 +217,13 @@ export default function Home() {
               <h2 className="text-2xl font-bold text-foreground mb-4">스포츠 뉴스</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {sportsNews.map((article) => (
-                  <NewsCard key={article.id} article={article} />
+                  <NewsCard key={article.id} article={article} onTagClick={handleTagClick} />
                 ))}
               </div>
             </div>
           </TabsContent>
 
-          {/* Stocks Tab - 주식 카테고리 */}
+          {/* Stocks Tab */}
           <TabsContent value="stocks" className="space-y-6">
             <div>
               <h2 className="text-2xl font-bold text-foreground mb-4">주식 시세</h2>
