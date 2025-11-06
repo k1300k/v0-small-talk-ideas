@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import NewsCard from "@/components/news-card"
 import StockCard from "@/components/stock-card"
-import { TrendingUp, Globe, Zap, Briefcase, BarChart3, X, ImageIcon, ImageOff } from "lucide-react"
+import { TrendingUp, Globe, Zap, Briefcase, BarChart3, X, ImageIcon, ImageOff, HelpCircle } from "lucide-react"
 
 interface NewsArticle {
   id: string
@@ -31,6 +31,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("news")
   const [searchTag, setSearchTag] = useState<string | null>(null)
   const [showImages, setShowImages] = useState(true)
+  const [showGuide, setShowGuide] = useState(false)
 
   const newsData: NewsArticle[] = [
     {
@@ -132,26 +133,93 @@ export default function Home() {
               </h1>
               <p className="text-muted-foreground mt-1">뉴스와 주식 정보를 한 곳에서</p>
             </div>
-            <button
-              onClick={() => setShowImages(!showImages)}
-              className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors"
-              title={showImages ? "이미지 숨기기" : "이미지 표시"}
-            >
-              {showImages ? (
-                <>
-                  <ImageIcon size={20} />
-                  <span className="text-sm font-medium">이미지 ON</span>
-                </>
-              ) : (
-                <>
-                  <ImageOff size={20} />
-                  <span className="text-sm font-medium">이미지 OFF</span>
-                </>
-              )}
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowGuide(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors"
+                title="앱 설명"
+              >
+                <HelpCircle size={20} />
+                <span className="text-sm font-medium">설명</span>
+              </button>
+              <button
+                onClick={() => setShowImages(!showImages)}
+                className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors"
+                title={showImages ? "이미지 숨기기" : "이미지 표시"}
+              >
+                {showImages ? (
+                  <>
+                    <ImageIcon size={20} />
+                    <span className="text-sm font-medium">이미지 ON</span>
+                  </>
+                ) : (
+                  <>
+                    <ImageOff size={20} />
+                    <span className="text-sm font-medium">이미지 OFF</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </header>
+
+      {/* Guide Modal */}
+      {showGuide && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-card rounded-lg shadow-lg max-w-md w-full">
+            <div className="p-6 border-b border-border flex items-center justify-between">
+              <h2 className="text-xl font-bold text-foreground">Small Talk Ideas 사용 설명</h2>
+              <button
+                onClick={() => setShowGuide(false)}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <h3 className="font-semibold text-foreground mb-2">탭 메뉴</h3>
+                <p className="text-sm text-muted-foreground">
+                  뉴스, 기술, 비즈니스, 스포츠, 주식 등 다양한 카테고리에서 정보를 확인할 수 있습니다.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground mb-2">기사 클릭</h3>
+                <p className="text-sm text-muted-foreground">
+                  기사 카드를 클릭하면 해당 기사를 검색하거나 상세 정보를 확인할 수 있습니다.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground mb-2">태그 검색</h3>
+                <p className="text-sm text-muted-foreground">
+                  기사 하단의 태그(예: TechNews)를 클릭하면 유사한 기사들을 필터링해서 볼 수 있습니다.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground mb-2">이미지 ON/OFF</h3>
+                <p className="text-sm text-muted-foreground">
+                  우측 상단의 버튼으로 기사 이미지 표시를 켜고 끌 수 있습니다. OFF시 제목만 표시됩니다.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground mb-2">주식 정보</h3>
+                <p className="text-sm text-muted-foreground">
+                  주식 탭에서 실시간 주가 정보를 확인하고, 카드를 클릭하면 해당 주식 정보를 검색할 수 있습니다.
+                </p>
+              </div>
+            </div>
+            <div className="p-6 border-t border-border">
+              <button
+                onClick={() => setShowGuide(false)}
+                className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-8">
