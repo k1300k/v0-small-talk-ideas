@@ -1,332 +1,165 @@
 "use client"
 
-import { useState } from "react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import NewsCard from "@/components/news-card"
-import StockCard from "@/components/stock-card"
-import { TrendingUp, Globe, Zap, Briefcase, BarChart3, X, ImageIcon, ImageOff, HelpCircle } from "lucide-react"
+import { useState, useEffect } from "react"
+import TopicCard from "@/components/topic-card"
+import CategoryFilter from "@/components/category-filter"
+import Header from "@/components/header"
+import ProgramInfo from "@/components/program-info"
 
-interface NewsArticle {
-  id: string
+interface Topic {
+  id: number
+  category: string
   title: string
   description: string
-  image: string
   source: string
   date: string
-  category: string
-  url?: string
+  dateLabel: string
+  tags: string[]
 }
 
-interface StockData {
-  id: string
-  symbol: string
-  name: string
-  price: number
-  change: number
-  changePercent: number
-  image: string
-}
+const CATEGORIES = [
+  { id: "all", label: "전체", icon: "🌟" },
+  { id: "연예", label: "연예", icon: "🎬" },
+  { id: "스포츠", label: "스포츠", icon: "⚽" },
+  { id: "교육", label: "교육", icon: "📚" },
+  { id: "경제", label: "경제", icon: "💰" },
+  { id: "메인뉴스", label: "메인뉴스", icon: "📰" },
+]
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState("news")
-  const [searchTag, setSearchTag] = useState<string | null>(null)
-  const [showImages, setShowImages] = useState(true)
-  const [showGuide, setShowGuide] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState("all")
+  const [topics, setTopics] = useState<Topic[]>([])
+  const [loading, setLoading] = useState(true)
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const [showProgramInfo, setShowProgramInfo] = useState(false)
 
-  const newsData: NewsArticle[] = [
-    {
-      id: "1",
-      title: "AI 기술이 산업을 혁신하다",
-      description: "인공지능 기술이 다양한 산업에서 빠르게 도입되고 있습니다.",
-      image: "/ai-technology-innovation.jpg",
-      source: "TechNews",
-      date: "2025-11-06",
-      category: "technology",
-      url: "https://www.google.com/search?q=AI+technology+innovation",
-    },
-    {
-      id: "2",
-      title: "글로벌 경제 전망 개선",
-      description: "국제 금융기관이 올해 경제 성장률을 상향 조정했습니다.",
-      image: "/global-economy.jpg",
-      source: "BusinessDaily",
-      date: "2025-11-05",
-      category: "business",
-      url: "https://www.google.com/search?q=global+economy+forecast",
-    },
-    {
-      id: "3",
-      title: "스포츠 팬들을 위한 새로운 앱 출시",
-      description: "실시간 스포츠 정보를 한 곳에서 확인할 수 있는 앱이 나왔습니다.",
-      image: "/sports-app-launch.jpg",
-      source: "SportsToday",
-      date: "2025-11-04",
-      category: "sports",
-      url: "https://www.google.com/search?q=sports+app+launch",
-    },
-  ]
-
-  const stockData: StockData[] = [
-    {
-      id: "1",
-      symbol: "AAPL",
-      name: "Apple Inc.",
-      price: 235.48,
-      change: 2.45,
-      changePercent: 1.05,
-      image: "/apple-logo.png",
-    },
-    {
-      id: "2",
-      symbol: "GOOGL",
-      name: "Google (Alphabet)",
-      price: 178.92,
-      change: -1.23,
-      changePercent: -0.68,
-      image: "/google-logo.png",
-    },
-    {
-      id: "3",
-      symbol: "MSFT",
-      name: "Microsoft Corp.",
-      price: 416.25,
-      change: 5.67,
-      changePercent: 1.38,
-      image: "/microsoft-logo.png",
-    },
-    {
-      id: "4",
-      symbol: "TSLA",
-      name: "Tesla Inc.",
-      price: 308.5,
-      change: -8.3,
-      changePercent: -2.62,
-      image: "/tesla-logo.png",
-    },
-  ]
-
-  const filteredNewsData = searchTag ? newsData.filter((article) => article.source === searchTag) : newsData
-
-  const techNews = filteredNewsData.filter((article) => article.category === "technology")
-  const businessNews = filteredNewsData.filter((article) => article.category === "business")
-  const sportsNews = filteredNewsData.filter((article) => article.category === "sports")
-
-  const handleTagClick = (tag: string) => {
-    setSearchTag(tag)
-    setActiveTab("news")
+  const fetchTopics = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch("/api/topics")
+      const data = await response.json()
+      setTopics(data)
+      setLastUpdated(new Date())
+      console.log("[v0] Topics updated:", data.length, "items")
+    } catch (error) {
+      console.error("[v0] Error fetching topics:", error)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleClearSearch = () => {
-    setSearchTag(null)
-  }
+  useEffect(() => {
+    // 초기 데이터 로드
+    fetchTopics()
+
+    // 1시간마다 데이터 갱신 (3600000ms)
+    const interval = setInterval(() => {
+      console.log("[v0] Auto-refreshing topics...")
+      fetchTopics()
+    }, 3600000) // 1시간 = 3600000ms
+
+    return () => clearInterval(interval)
+  }, [])
+
+  const groupedTopics = topics.reduce(
+    (acc, topic) => {
+      if (!acc[topic.category]) {
+        acc[topic.category] = []
+      }
+      acc[topic.category].push(topic)
+      return acc
+    },
+    {} as Record<string, Topic[]>,
+  )
+
+  const categoriesToShow = selectedCategory === "all" ? Object.keys(groupedTopics) : [selectedCategory]
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-                <TrendingUp className="text-blue-600" size={32} />
-                Small Talk Ideas
-              </h1>
-              <p className="text-muted-foreground mt-1">뉴스와 주식 정보를 한 곳에서</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setShowGuide(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors"
-                title="앱 설명"
-              >
-                <HelpCircle size={20} />
-                <span className="text-sm font-medium">설명</span>
-              </button>
-              <button
-                onClick={() => setShowImages(!showImages)}
-                className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors"
-                title={showImages ? "이미지 숨기기" : "이미지 표시"}
-              >
-                {showImages ? (
-                  <>
-                    <ImageIcon size={20} />
-                    <span className="text-sm font-medium">이미지 ON</span>
-                  </>
-                ) : (
-                  <>
-                    <ImageOff size={20} />
-                    <span className="text-sm font-medium">이미지 OFF</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      <Header />
 
-      {/* Guide Modal */}
-      {showGuide && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-card rounded-lg shadow-lg max-w-md w-full">
-            <div className="p-6 border-b border-border flex items-center justify-between">
-              <h2 className="text-xl font-bold text-foreground">Small Talk Ideas 사용 설명</h2>
-              <button
-                onClick={() => setShowGuide(false)}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <h3 className="font-semibold text-foreground mb-2">탭 메뉴</h3>
-                <p className="text-sm text-muted-foreground">
-                  뉴스, 기술, 비즈니스, 스포츠, 주식 등 다양한 카테고리에서 정보를 확인할 수 있습니다.
-                </p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground mb-2">기사 클릭</h3>
-                <p className="text-sm text-muted-foreground">
-                  기사 카드를 클릭하면 해당 기사를 검색하거나 상세 정보를 확인할 수 있습니다.
-                </p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground mb-2">태그 검색</h3>
-                <p className="text-sm text-muted-foreground">
-                  기사 하단의 태그(예: TechNews)를 클릭하면 유사한 기사들을 필터링해서 볼 수 있습니다.
-                </p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground mb-2">이미지 ON/OFF</h3>
-                <p className="text-sm text-muted-foreground">
-                  우측 상단의 버튼으로 기사 이미지 표시를 켜고 끌 수 있습니다. OFF시 제목만 표시됩니다.
-                </p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground mb-2">주식 정보</h3>
-                <p className="text-sm text-muted-foreground">
-                  주식 탭에서 실시간 주가 정보를 확인하고, 카드를 클릭하면 해당 주식 정보를 검색할 수 있습니다.
-                </p>
-              </div>
-            </div>
-            <div className="p-6 border-t border-border">
-              <button
-                onClick={() => setShowGuide(false)}
-                className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
-              >
-                확인
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-slate-900 mb-4">
+            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              스몰톡 토픽
+            </span>
+          </h1>
+          <p className="text-lg text-slate-600 mb-2">점심시간에 나눌 만한 흥미로운 이야기 주제를 매일 추천해드립니다</p>
 
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        {searchTag && (
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">검색:</span>
-              <span className="font-semibold text-blue-900">{searchTag}</span>
+          {lastUpdated && (
+            <p className="text-sm text-slate-500">마지막 업데이트: {lastUpdated.toLocaleTimeString("ko-KR")}</p>
+          )}
+
+          <p className="text-sm text-blue-600 font-medium mt-2">🔄 매일 오늘과 어제의 토픽을 함께 제공합니다</p>
+        </div>
+
+        <div className="flex justify-center mb-8">
+          <button
+            onClick={() => setShowProgramInfo(true)}
+            className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-lg font-medium transition-all transform hover:scale-105"
+          >
+            ℹ️ 프로그램 설명
+          </button>
+        </div>
+
+        {showProgramInfo && <ProgramInfo onClose={() => setShowProgramInfo(false)} />}
+
+        <div className="mb-10">
+          <CategoryFilter
+            categories={CATEGORIES}
+            selectedCategory={selectedCategory}
+            onSelectCategory={setSelectedCategory}
+          />
+        </div>
+
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin">
+              <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full"></div>
             </div>
-            <button
-              onClick={handleClearSearch}
-              className="flex items-center gap-1 px-3 py-1 bg-blue-200 hover:bg-blue-300 text-blue-900 rounded transition-colors"
-            >
-              <X size={16} />
-              초기화
-            </button>
+            <p className="text-slate-600 mt-4">토픽을 불러오는 중...</p>
           </div>
+        ) : (
+          <>
+            {categoriesToShow.map((category) => (
+              <div key={category} className="mb-12">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="h-1 w-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded"></div>
+                  <h2 className="text-2xl font-bold text-slate-900">
+                    {CATEGORIES.find((c) => c.id === category)?.label}
+                  </h2>
+                  <span className="ml-2 text-sm font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
+                    {groupedTopics[category].length}개
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+                  {groupedTopics[category].map((topic) => (
+                    <TopicCard key={topic.id} topic={topic} />
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            {categoriesToShow.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-slate-500 text-lg">선택한 카테고리에 주제가 없습니다.</p>
+              </div>
+            )}
+          </>
         )}
 
-        <Tabs defaultValue="news" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-muted p-1 mb-8">
-            <TabsTrigger value="news" className="flex items-center gap-2">
-              <Globe size={18} />
-              <span className="hidden sm:inline">뉴스</span>
-            </TabsTrigger>
-            <TabsTrigger value="technology" className="flex items-center gap-2">
-              <Zap size={18} />
-              <span className="hidden sm:inline">기술</span>
-            </TabsTrigger>
-            <TabsTrigger value="business" className="flex items-center gap-2">
-              <Briefcase size={18} />
-              <span className="hidden sm:inline">비즈니스</span>
-            </TabsTrigger>
-            <TabsTrigger value="sports" className="flex items-center gap-2">
-              <span className="text-lg">⚽</span>
-              <span className="hidden sm:inline">스포츠</span>
-            </TabsTrigger>
-            <TabsTrigger value="stocks" className="flex items-center gap-2">
-              <BarChart3 size={18} />
-              <span className="hidden sm:inline">주식</span>
-            </TabsTrigger>
-          </TabsList>
-
-          {/* All News Tab */}
-          <TabsContent value="news" className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-foreground mb-4">
-                {searchTag ? `${searchTag} 관련 기사` : "모든 뉴스"}
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredNewsData.map((article) => (
-                  <NewsCard key={article.id} article={article} onTagClick={handleTagClick} showImages={showImages} />
-                ))}
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* Technology Tab */}
-          <TabsContent value="technology" className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-foreground mb-4">기술 뉴스</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {techNews.map((article) => (
-                  <NewsCard key={article.id} article={article} onTagClick={handleTagClick} showImages={showImages} />
-                ))}
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* Business Tab */}
-          <TabsContent value="business" className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-foreground mb-4">비즈니스 뉴스</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {businessNews.map((article) => (
-                  <NewsCard key={article.id} article={article} onTagClick={handleTagClick} showImages={showImages} />
-                ))}
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* Sports Tab */}
-          <TabsContent value="sports" className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-foreground mb-4">스포츠 뉴스</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {sportsNews.map((article) => (
-                  <NewsCard key={article.id} article={article} onTagClick={handleTagClick} showImages={showImages} />
-                ))}
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* Stocks Tab */}
-          <TabsContent value="stocks" className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-foreground mb-4">주식 시세</h2>
-              <p className="text-muted-foreground mb-6">실시간 주요 기업 주가 정보</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-                {stockData.map((stock) => (
-                  <StockCard key={stock.id} stock={stock} />
-                ))}
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </main>
-    </div>
+        <div className="text-center mt-12">
+          <button
+            onClick={fetchTopics}
+            disabled={loading}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors"
+          >
+            {loading ? "업데이트 중..." : "지금 새로고침"}
+          </button>
+        </div>
+      </div>
+    </main>
   )
 }
