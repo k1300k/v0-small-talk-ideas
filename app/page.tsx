@@ -14,6 +14,7 @@ interface NewsArticle {
   source: string
   date: string
   category: string
+  url?: string
 }
 
 interface StockData {
@@ -39,6 +40,7 @@ export default function Home() {
       source: "TechNews",
       date: "2025-11-06",
       category: "technology",
+      url: "https://www.google.com/search?q=AI+technology+innovation",
     },
     {
       id: "2",
@@ -48,6 +50,7 @@ export default function Home() {
       source: "BusinessDaily",
       date: "2025-11-05",
       category: "business",
+      url: "https://www.google.com/search?q=global+economy+forecast",
     },
     {
       id: "3",
@@ -57,6 +60,7 @@ export default function Home() {
       source: "SportsToday",
       date: "2025-11-04",
       category: "sports",
+      url: "https://www.google.com/search?q=sports+app+launch",
     },
   ]
 
